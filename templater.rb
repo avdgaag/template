@@ -10,10 +10,16 @@ class Templater
 
   def render
     template.gsub(/\{\{(\w+)\}\}/) do
-      data.fetch($1.to_sym, '')
+      fetch $1
     end.gsub(/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/) do
-      $2 if data.fetch($1.to_sym, false)
+      $2 if fetch $1
     end
+  end
+
+  private
+
+  def fetch(key, default = nil)
+    data.fetch key.to_sym, default
   end
 end
 
