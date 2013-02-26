@@ -9,8 +9,10 @@ class Templater
   end
 
   def render
-    template.gsub(/\{\{([^}]+)\}\}/) do
+    template.gsub(/\{\{(\w+)\}\}/) do
       data.fetch($1.to_sym, '')
+    end.gsub(/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/) do
+      $2 if data.fetch($1.to_sym, false)
     end
   end
 end
@@ -43,6 +45,32 @@ describe Templater do
 
       it 'omits the placeholder' do
         should == 'Hello, Graham! Your  is Graham.'
+      end
+    end
+  end
+
+  context 'with sections' do
+    let(:template) { 'You are logged in{{#admin}} and an administrator{{/admin}}.' }
+
+    context 'and missing key' do
+      it 'omits the entire section' do
+        should == 'You are logged in.'
+      end
+    end
+
+    context 'and truthy value' do
+      let(:data) { { admin: true } }
+
+      it 'shows the section' do
+        should == 'You are logged in and an administrator.'
+      end
+    end
+
+    context 'and falsy value' do
+      let(:data) { { admin: false } }
+
+      it 'omits the entire section' do
+        should == 'You are logged in.'
       end
     end
   end
