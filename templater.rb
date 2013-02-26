@@ -25,18 +25,18 @@ class Templater
 
     def render
       super.gsub(PATTERN) do |m|
-        value = fetch($1)
-        if value.respond_to?(:each)
-          if value.empty?
-            nil
-          else
-            value.each.inject('') do |output, element|
-              output + Templater.new($2, element).render
-            end
-          end
-        else
-          m
-        end
+        render_iterable(fetch($1), $2) || m
+      end
+    end
+
+    private
+
+    def render_iterable(iterable, templ)
+      return unless iterable.respond_to?(:each)
+      return '' if iterable.empty?
+
+      iterable.each.inject('') do |output, element|
+        output + Templater.new(templ, element).render
       end
     end
   end
