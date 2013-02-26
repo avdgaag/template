@@ -20,9 +20,32 @@ class Templater
     end
   end
 
+  module IterationInterpolation
+    PATTERN = /\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/
+
+    def render
+      super.gsub(PATTERN) do |m|
+        value = fetch($1)
+        if value.respond_to?(:each)
+          if value.empty?
+            nil
+          else
+            value.each.inject('') do |output, element|
+              output + Templater.new($2, element).render
+            end
+          end
+        else
+          m
+        end
+      end
+    end
+  end
+
   def initialize(template, data = {})
     @template, @data = template, data
-    extend VariableInterpolation, SectionInterpolation
+    extend VariableInterpolation,
+      SectionInterpolation,
+      IterationInterpolation
   end
 
   def render
@@ -90,6 +113,40 @@ describe Templater do
 
       it 'omits the entire section' do
         should == 'You are logged in.'
+      end
+    end
+  end
+
+  context 'with iteration' do
+    let(:template) { 'Members: {{#members}}{{name}} {{/members}}' }
+
+    context 'and missing key' do
+      it 'omits the entire section' do
+        should == 'Members: '
+      end
+    end
+
+    context 'and non-iterable value' do
+      let(:data) { { members: false, name: 'Foo' } }
+
+      it 'omits the entire section' do
+        should == 'Members: '
+      end
+    end
+
+    context 'and filled iterable value' do
+      let(:data) { { members: [{ name: 'John' }, { name: 'Graham' }], name: 'Terry' } }
+
+      it 'shows the section for each element' do
+        should == 'Members: John Graham '
+      end
+    end
+
+    context 'and empty iterable value' do
+      let(:data) { { members: [], name: 'Terry' } }
+
+      it 'shows the section for each element' do
+        should == 'Members: '
       end
     end
   end
