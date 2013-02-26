@@ -27,30 +27,23 @@ describe Templater do
     end
   end
 
-  context 'with a single placeholder' do
-    let(:template) { 'Hello, {{name}}!' }
-
-    context 'when the key is present' do
-      let(:data) { { name: 'Eric' } }
-
-      it 'replaces the placeholder with they key value' do
-        should == 'Hello, Eric!'
-      end
-    end
-
-    context 'when the key is not present' do
-      it 'omits the placeholder' do
-        should == 'Hello, !'
-      end
-    end
-  end
-
-  context 'with multiple placeholders' do
+  context 'with placeholders' do
     let(:template) { 'Hello, {{name}}! Your {{attr}} is {{name}}.' }
-    let(:data) { { name: 'Graham', attr: 'name' } }
 
-    it 'replaces all placeholders with their corresponding values' do
-      should == 'Hello, Graham! Your name is Graham.'
+    context 'when keys are present' do
+      let(:data) { { name: 'Graham', attr: 'name' } }
+
+      it 'replaces all placeholders with their corresponding values' do
+        should == 'Hello, Graham! Your name is Graham.'
+      end
+    end
+
+    context 'when a key is not present' do
+      let(:data) { { name: 'Graham' } }
+
+      it 'omits the placeholder' do
+        should == 'Hello, Graham! Your  is Graham.'
+      end
     end
   end
 end
