@@ -22,7 +22,7 @@ class Templater
   end
 
   module IterationInterpolation
-    PATTERN = /\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/
+    PATTERN = SectionInterpolation::PATTERN
 
     def render
       super.gsub(PATTERN) do |m|
