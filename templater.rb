@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'rspec/autorun'
+require 'ostruct'
 
 class Templater
   attr_reader :template, :data
@@ -55,7 +56,13 @@ class Templater
   private
 
   def fetch(key, default = nil)
-    data.fetch key.to_sym, default
+    if data.respond_to? :fetch
+      data.fetch key.to_sym, default
+    elsif data.respond_to? key
+      data.send key
+    else
+      default
+    end
   end
 end
 
@@ -87,6 +94,14 @@ describe Templater do
 
       it 'omits the placeholder' do
         should == 'Hello, Graham! Your  is Graham.'
+      end
+    end
+
+    context 'when using an object as key/pair' do
+      let(:data) { OpenStruct.new(name: 'Eric') }
+
+      it 'uses a method call to replace keys with values' do
+        should == 'Hello, Eric! Your  is Eric.'
       end
     end
   end
