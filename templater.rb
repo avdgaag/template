@@ -9,7 +9,7 @@ class Templater
   end
 
   def render
-    template.sub(/\{\{([^}]+)\}\}/) do
+    template.gsub(/\{\{([^}]+)\}\}/) do
       data.fetch($1.to_sym, '')
     end
   end
@@ -42,6 +42,15 @@ describe Templater do
       it 'omits the placeholder' do
         should == 'Hello, !'
       end
+    end
+  end
+
+  context 'with multiple placeholders' do
+    let(:template) { 'Hello, {{name}}! Your {{attr}} is {{name}}.' }
+    let(:data) { { name: 'Graham', attr: 'name' } }
+
+    it 'replaces all placeholders with their corresponding values' do
+      should == 'Hello, Graham! Your name is Graham.'
     end
   end
 end
