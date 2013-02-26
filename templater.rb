@@ -4,16 +4,29 @@ require 'rspec/autorun'
 class Templater
   attr_reader :template, :data
 
+  module VariableInterpolation
+    PATTERN = /\{\{(\w+)\}\}/
+
+    def render
+      super.gsub(PATTERN) { fetch $1 }
+    end
+  end
+
+  module SectionInterpolation
+    PATTERN = /\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/
+
+    def render
+      super.gsub(PATTERN) { $2 if fetch $1 }
+    end
+  end
+
   def initialize(template, data = {})
     @template, @data = template, data
+    extend VariableInterpolation, SectionInterpolation
   end
 
   def render
-    template.gsub(/\{\{(\w+)\}\}/) do
-      fetch $1
-    end.gsub(/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/) do
-      $2 if fetch $1
-    end
+    template
   end
 
   private
